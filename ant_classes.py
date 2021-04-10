@@ -6,6 +6,13 @@
 from random import random, randint, choices
 
 
+# ====================
+# | CUSTOM EXCEPTION |
+# ====================
+class AllAntsDead(Exception):
+    pass
+
+
 # ===================
 # |   TRAIL CLASS   |
 # ===================
@@ -36,6 +43,9 @@ class AntHill:
         # define a list of ants in the hill
         self.ants = list(range(population_size))
 
+        # keep track of how long since last newborn
+        self.time_since_last_new_ant = 0
+
         # define the amount of food in the ant hill
         self.food_count = 0
 
@@ -44,7 +54,8 @@ class AntHill:
         self.trails = []
 
         # track the state of the simulation at any given time
-        self.num_ants = []
+        self.num_active_ants = []
+        self.num_immature_ants = []
         self.food_collected = []
 
     def __contains__(self, ant):
@@ -90,13 +101,14 @@ class AntHill:
 # ===================
 class Ant:
 
-    def __init__(self, ant_id, starting_x_loc, starting_y_loc):
+    def __init__(self, ant_id, maturity_status, starting_x_loc, starting_y_loc):
 
         # set an id for each ant
         self.id = ant_id
+        self.maturity_status = maturity_status
 
         # set a time alive variable for each ant
-        self.time_alive = 0
+        self.time_since_born = 0
         self.time_since_eaten = 0
 
         # define the ants starting location
@@ -139,6 +151,9 @@ class Ant:
     def is_carrying_food(self):
         return bool(self.carrying_status)
 
+    def is_alive_and_mature(self):
+        return self.maturity_status == "mature"
+
     def increment_to_food(self):
         for x, y in reversed(self.food_scent_trail):
             yield -x, -y
@@ -161,8 +176,9 @@ class Ant:
             # adjust these increments so the point stays on the screen
             x_increment = ensure_val_stays_in_window(self.x_loc + rand_x_increment, 0, env_width - 1) - self.x_loc
             y_increment = ensure_val_stays_in_window(self.y_loc + rand_y_increment, 0, env_height - 1) - self.y_loc
-            # keep track of the points movements
-            self.food_search_trail.append((x_increment, y_increment))
+
+        # keep track of the points movements
+        self.food_search_trail.append((x_increment, y_increment))
 
         # update the ants location
         self.update_location(x_increment, y_increment, anthill)
@@ -173,8 +189,6 @@ class Ant:
         x_back_increment, y_back_increment = next(self.to_anthill_increment)
         self.update_location(x_back_increment, y_back_increment, anthill)
 
-    def is_alive(self, max_lifespan, max_without_food):
-        return (self.time_alive < max_lifespan) and (self.time_since_eaten < max_without_food)
 
 def ensure_val_stays_in_window(val, window_start, window_end):
     if val < window_start:
