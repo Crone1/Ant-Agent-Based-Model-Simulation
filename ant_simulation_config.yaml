@@ -1,0 +1,23 @@
+---
+
+# define the width of the environment
+environment_width: 50
+environment_height: 50
+
+# define the population size
+population_size: 20
+
+# set probability of food initialising in area
+num_trees: 20
+max_food_on_tree: 100
+
+# set probability of ant following a trail vs searching for new food sources
+follow_prob: 1
+
+# set the initial strength of a food trail
+trail_depreciation_time: 20
+
+# set the depreciation rates of the ants
+max_lifespan: 13000
+max_without_food: 300
+time_till_hungry: 72
