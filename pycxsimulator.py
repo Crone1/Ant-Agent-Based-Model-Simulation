@@ -28,8 +28,10 @@ class Gui:
     def __init__(self, parameterSetters=[]):
 
         self.controller_title = 'Ant Simulation Controller'
-        self.x_dim = 300
+        self.x_dim = 320
         self.y_dim = 250
+        self.figXDim = 6.85
+        self.figYDim = 6.15
 
         self.timeInterval = 0
         self.stepSize = 1
@@ -229,7 +231,7 @@ class Gui:
     def drawModel(self):
         plt.ion() #SM 3/26/2020
         if self.modelFigure == None or self.modelFigure.canvas.manager.window == None: 
-            self.modelFigure = plt.figure() #SM 3/26/2020
+            self.modelFigure = plt.figure(figsize=(self.figXDim, self.figYDim))
         self.modelDrawFunc()
         self.modelFigure.canvas.manager.window.update()
         plt.show() # bug fix by Hiroki Sayama in 2016 #SM 3/26/2020

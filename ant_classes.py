@@ -131,11 +131,9 @@ class Ant:
         self.to_anthill_increment = None
 
     def update_location(self, x, y, anthill):
-
         # simulate random motion but ensure the ant doesn't move off the screen
         self.x_loc += x
         self.y_loc += y
-
         # update the ant's status in the ant hill
         if self in anthill:
             anthill.add(self)
@@ -167,7 +165,6 @@ class Ant:
         if self.is_follower():
             self.count_steps_out += 1
             x_increment, y_increment = next(self.to_food_increment)
-
         # if not following a trail - get the next random increment
         else:
             # generate random increments
@@ -176,10 +173,8 @@ class Ant:
             # adjust these increments so the point stays on the screen
             x_increment = ensure_val_stays_in_window(self.x_loc + rand_x_increment, 0, env_width - 1) - self.x_loc
             y_increment = ensure_val_stays_in_window(self.y_loc + rand_y_increment, 0, env_height - 1) - self.y_loc
-
         # keep track of the points movements
         self.food_search_trail.append((x_increment, y_increment))
-
         # update the ants location
         self.update_location(x_increment, y_increment, anthill)
 

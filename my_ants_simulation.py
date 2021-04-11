@@ -96,24 +96,72 @@ def turn_hours_to_more_appealing_output(hours):
     return "{} weeks, {} days, {} hours".format(weeks, days, hours)
 
 
-def plot_current_state():
+def plot_simulation_summary_stats(pop_axis, food_axis):
 
-    global time, anthill, ants_list, envir
+    # plot the ant populations
+    if anthill.num_immature_ants and anthill.num_active_ants:
+        max_pop_y_val = max((int(max(anthill.num_immature_ants)), int(max(anthill.num_active_ants))))
+        pop_axis.set_ylim((-0.2*max_pop_y_val, 1.2*max_pop_y_val))
+        pop_label_pad = 20 + max((5, 5*len(str(max_pop_y_val))))
+    else:
+        pop_label_pad = 20
+    pop_axis.plot(list(range(len(anthill.num_active_ants))), anthill.num_active_ants, label="Mature Ants")
+    pop_axis.plot(list(range(len(anthill.num_immature_ants))), anthill.num_immature_ants, label="Immature Ants")
+    pop_axis.set_ylabel("Population", size=10, rotation='horizontal', labelpad=pop_label_pad)
+    pop_axis.set_xticks([])
 
-    # set up this new plot
-    plt.cla()
+    # plot the food supply
+    if anthill.food_collected:
+        max_food_y_val = max(anthill.food_collected)
+        if max_food_y_val != 0:
+            food_axis.set_ylim((-0.2*max_food_y_val, 1.2*max_food_y_val))
+        food_label_pad = 15 + max((5, 5*len(str(int(max_food_y_val)))))
+    else:
+        food_label_pad = 20
+    food_axis.plot(list(range(len(anthill.food_collected))), anthill.food_collected)
+    food_axis.set_ylabel("Food\nSupply", size=10, rotation='horizontal', labelpad=food_label_pad)
+    food_axis.set_xlabel("Time (hrs)", size=10)
+
+
+def plot_environment_state(env_axis):
+
     # plot the environments state
-    plt.imshow(envir, cmap=cm.YlOrRd, vmin=0, vmax=max_food_on_tree)
-    plt.axis('off')
+    env_axis.imshow(envir, cmap=cm.YlOrRd, vmin=0, vmax=max_food_on_tree)
+    env_axis.axis('off')
     # plot the anthills location
-    plt.scatter(anthill.x_loc, anthill.y_loc, c="black")
+    env_axis.scatter(anthill.x_loc, anthill.y_loc, c="black")
     # plot the coordinates of the ants that are alive
     x = [ant.x_loc for ant in ants_list if ant.is_alive_and_mature()]
     y = [ant.y_loc for ant in ants_list if ant.is_alive_and_mature()]
     s = [ant.carrying_status for ant in ants_list if ant.is_alive_and_mature()]
-    plt.scatter(x, y, c=s, cmap=cm.bwr)
+    env_axis.scatter(x, y, c=s, cmap=cm.bwr)
     # set the title of the plot to be the time that has past in the simulation
-    plt.title('Time Past = {}'.format(turn_hours_to_more_appealing_output(time)))
+    env_axis.set_title('Time Past = {}'.format(turn_hours_to_more_appealing_output(time)))
+
+
+def plot_current_state():
+
+    # set up this new plot
+    plt.clf()
+    fig = plt.gcf()
+    gs = fig.add_gridspec(nrows=3, ncols=1, hspace=0.05)
+
+    # set up the plot axes
+    env_axis = fig.add_subplot(gs[0:2])
+    summary_gs = gs[2].subgridspec(nrows=2, ncols=10, hspace=0.1)
+    pop_axis = fig.add_subplot(summary_gs[0, 1:])
+    food_axis = fig.add_subplot(summary_gs[1, 1:])
+
+    # plot the environments state
+    plot_environment_state(env_axis)
+
+    # plot summary graphs
+    plot_simulation_summary_stats(pop_axis, food_axis)
+
+    # re-locate the graph labels
+    handles, labels = pop_axis.get_legend_handles_labels()
+    fig.legend(handles, labels, title="Population Plot Labels", loc='center right')
+    plt.show()
 
 
 def move_ant_toward_location(ant, x, y):
@@ -279,37 +327,11 @@ def update_state():
     # stop the simulation if there are no more ants
     if (count_num_active_ants == 0):# and (count_num_immature_ants == 0):
         # plot summary statistics in a new figure
-        plot_summary_stats()
+        plot_simulation_summary_stats()
 
         # raise an exception to stop the simulation
         print("All ants have died")
         raise ant_classes.AllAntsDead("All ants have died")
-
-
-def plot_summary_stats():
-
-    fig = plt.figure()
-    gs = fig.add_gridspec(ncols=1, nrows=2, wspace=0, hspace=0.5)
-    axes = gs.subplots()
-
-    # set the axes column names
-    axes[0].set_title("Ant Population Over Time", size=20)
-    axes[1].set_title("Food Supply Over Time", size=20)
-
-    # set the axes row names
-    axes[0].set_ylabel("Population", size=12)
-    axes[1].set_ylabel("Food Supply", size=12)
-
-    # plot the ant populations
-    axes[0].plot(list(range(len(anthill.num_active_ants))), anthill.num_active_ants)
-    axes[0].plot(list(range(len(anthill.num_immature_ants))), anthill.num_immature_ants)
-    axes[0].legend(["Mature Population", "Immature Population"])
-
-    # plot the food supply
-    axes[1].plot(list(range(len(anthill.food_collected))), anthill.food_collected)
-    axes[1].set_yscale('log')
-
-    plt.show()
 
 
 def main():
