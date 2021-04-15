@@ -38,6 +38,7 @@ env_width = config_variables["environment_width"]
 env_height = config_variables["environment_height"]
 starting_population_size = config_variables["starting_population_size"]
 num_starting_trees = config_variables["num_starting_trees"]
+tree_spawn_prob = config_variables["tree_spawn_prob"]
 max_food_on_tree = config_variables["max_food_on_tree"]
 follow_prob = config_variables["follow_prob"]
 trail_depreciation_time = config_variables["trail_depreciation_time"]
@@ -45,8 +46,9 @@ max_lifespan = config_variables["max_lifespan"]
 max_without_food = config_variables["max_without_food"]
 time_till_hungry = config_variables["time_till_hungry"]
 num_ants_laid_daily = config_variables["num_ants_laid_daily"]
-time_till_maturity = config_variables["time_till_maturity"]
-tree_spawn_prob = config_variables["tree_spawn_prob"]
+time_till_egg_hatch = config_variables["time_till_egg_hatch"]
+time_till_larvae_become_pupa = config_variables["time_till_larvae_become_pupa"]
+time_till_pupa_become_mature_ants = config_variables["time_till_pupa_become_mature_ants"]
 
 
 # ===================================
@@ -96,19 +98,34 @@ def turn_hours_to_more_appealing_output(hours):
     return "{} weeks, {} days, {} hours".format(weeks, days, hours)
 
 
-def plot_simulation_summary_stats(pop_axis, food_axis):
+def plot_simulation_summary_stats(mature_pop_axis, immature_pop_axis, food_axis):
 
-    # plot the ant populations
-    if anthill.num_immature_ants and anthill.num_active_ants:
-        max_pop_y_val = max((int(max(anthill.num_immature_ants)), int(max(anthill.num_active_ants))))
-        pop_axis.set_ylim((-0.2*max_pop_y_val, 1.2*max_pop_y_val))
-        pop_label_pad = 20 + max((5, 5*len(str(max_pop_y_val))))
+    # plot the mature ant populations
+    if anthill.num_active_ants:
+        max_mpop_y_val = int(max(anthill.num_active_ants))
+        mature_pop_axis.set_ylim((-0.2*max_mpop_y_val, 1.2*max_mpop_y_val))
+        mpop_label_pad = 25 + max((5, 5*len(str(max_mpop_y_val))))
     else:
-        pop_label_pad = 20
-    pop_axis.plot(list(range(len(anthill.num_active_ants))), anthill.num_active_ants, label="Mature Ants")
-    pop_axis.plot(list(range(len(anthill.num_immature_ants))), anthill.num_immature_ants, label="Immature Ants")
-    pop_axis.set_ylabel("Population", size=10, rotation='horizontal', labelpad=pop_label_pad)
-    pop_axis.set_xticks([])
+        mpop_label_pad = 20
+    mature_pop_axis.plot(list(range(len(anthill.num_active_ants))), anthill.num_active_ants)
+    mature_pop_axis.set_ylabel("Mature\nPopulation", size=10, rotation='horizontal', labelpad=mpop_label_pad)
+    mature_pop_axis.set_xticks([])
+
+    # plot the immature ant populations
+    if anthill.num_ant_eggs:
+        max_impop_y_val = 0
+        for i in range(len(anthill.num_ant_eggs)):
+            i_val = int(anthill.num_ant_eggs[i]) + int(anthill.num_ant_larvae[i]) + int(anthill.num_ant_pupa[i])
+            if i_val > max_impop_y_val:
+                max_impop_y_val = i_val
+        if max_impop_y_val != 0:
+            immature_pop_axis.set_ylim((-0.2*max_impop_y_val, 1.2*max_impop_y_val))
+        impop_label_pad = 25 + max((5, 5*len(str(max_impop_y_val))))
+    else:
+        impop_label_pad = 20
+    immature_pop_axis.stackplot(list(range(len(anthill.num_ant_eggs))), anthill.num_ant_eggs, anthill.num_ant_larvae, anthill.num_ant_pupa, labels=["Ant Eggs", "Ant Larvea", "Ant Pupa"])
+    immature_pop_axis.set_ylabel("Immature\nPopulation", size=10, rotation='horizontal', labelpad=impop_label_pad)
+    immature_pop_axis.set_xticks([])
 
     # plot the food supply
     if anthill.food_collected:
@@ -135,8 +152,6 @@ def plot_environment_state(env_axis):
     y = [ant.y_loc for ant in ants_list if ant.is_alive_and_mature()]
     s = [ant.carrying_status for ant in ants_list if ant.is_alive_and_mature()]
     env_axis.scatter(x, y, c=s, cmap=cm.bwr)
-    # set the title of the plot to be the time that has past in the simulation
-    env_axis.set_title('Time Past = {}'.format(turn_hours_to_more_appealing_output(time)))
 
 
 def plot_current_state():
@@ -144,23 +159,27 @@ def plot_current_state():
     # set up this new plot
     plt.clf()
     fig = plt.gcf()
-    gs = fig.add_gridspec(nrows=3, ncols=1, hspace=0.05)
+    gs = fig.add_gridspec(nrows=1, ncols=2, wspace=0.7)
 
-    # set up the plot axes
-    env_axis = fig.add_subplot(gs[0:2])
-    summary_gs = gs[2].subgridspec(nrows=2, ncols=10, hspace=0.1)
-    pop_axis = fig.add_subplot(summary_gs[0, 1:])
-    food_axis = fig.add_subplot(summary_gs[1, 1:])
+    # set the title of the plot to be the time that has past in the simulation
+    fig.suptitle('Time Past = {}'.format(turn_hours_to_more_appealing_output(time)))
 
     # plot the environments state
+    env_axis = fig.add_subplot(gs[0])
     plot_environment_state(env_axis)
 
     # plot summary graphs
-    plot_simulation_summary_stats(pop_axis, food_axis)
+    summary_gs = gs[1].subgridspec(nrows=3, ncols=10, hspace=0.1)
+    mature_pop_axis = fig.add_subplot(summary_gs[0, 1:])
+    immature_pop_axis = fig.add_subplot(summary_gs[1, 1:])
+    food_axis = fig.add_subplot(summary_gs[2, 1:])
+    plot_simulation_summary_stats(mature_pop_axis, immature_pop_axis, food_axis)
 
     # re-locate the graph labels
-    handles, labels = pop_axis.get_legend_handles_labels()
-    fig.legend(handles, labels, title="Population Plot Labels", loc='center right')
+    handles, labels = immature_pop_axis.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='center right', fontsize="small")
+    mng = plt.get_current_fig_manager()
+    mng.window.state('zoomed')
     plt.show()
 
 
@@ -194,6 +213,10 @@ def update_state():
 
     global time, anthill, ants_list, envir
 
+    # set helper variables
+    full_time_till_larvae_become_pupa = time_till_egg_hatch + time_till_larvae_become_pupa
+    full_time_till_pupa_become_mature_ants = full_time_till_larvae_become_pupa + time_till_pupa_become_mature_ants
+
     # update the time
     time += 1
 
@@ -216,14 +239,14 @@ def update_state():
 
     # add new ants to the colony
     if anthill.time_since_last_new_ant > (24/num_ants_laid_daily):
-        ant = ant_classes.Ant(len(ants_list)+1, "immature", anthill.x_loc, anthill.y_loc)
+        ant = ant_classes.Ant(len(ants_list)+1, "egg", anthill.x_loc, anthill.y_loc)
         ants_list.append(ant)
         anthill.time_since_last_new_ant = 0
     else:
         anthill.time_since_last_new_ant += 1
 
     # update the locations of the ants
-    count_num_active_ants = count_num_immature_ants = 0
+    count_num_active_ants = count_num_ant_eggs = count_num_larvae = count_num_pupa = 0
     for ant in ants_list:
         ant.time_since_born += 1
 
@@ -231,15 +254,30 @@ def update_state():
         if ant.time_since_eaten > max_without_food:
             ant.maturity_status = "dead"
 
-        # update the newborn ants
-        if ant.maturity_status == "immature":
-            count_num_immature_ants += 1
-            # check if the ant should now be mature
-            if ant.time_since_born > time_till_maturity:
-                ant.maturity_status = "mature"
+        # update the immature ants
+        if not ant.is_alive_and_mature():
+            # deal with the eggs
+            if ant.maturity_status == "egg":
+                count_num_ant_eggs += 1
+                # check if the ant egg should now hatch
+                if ant.time_since_born > time_till_egg_hatch:
+                    ant.maturity_status = "larvae"
+            # deal with the larvae
+            elif ant.maturity_status == "larvae":
+                count_num_larvae += 1
+                # check if the ant should now be mature
+                if ant.time_since_born > full_time_till_larvae_become_pupa:
+                    ant.maturity_status = "pupa"
+            # deal with the pupa
+            elif ant.maturity_status == "pupa":
+                count_num_pupa += 1
+                # check if the ant should now be mature
+                if ant.time_since_born > full_time_till_pupa_become_mature_ants:
+                    ant.maturity_status = "mature"
             # get the ant to eat food if he's hungry - amount = relative to his development
-            amount_he_will_eat = ant.time_since_born/time_till_maturity
-            eat_if_hungry(ant, time_till_hungry, anthill=anthill, amount_eaten=amount_he_will_eat)
+            if ant.maturity_status != "egg":
+                amount_he_will_eat = ant.time_since_born/full_time_till_pupa_become_mature_ants
+                eat_if_hungry(ant, time_till_hungry, anthill=anthill, amount_eaten=amount_he_will_eat)
 
         # update the ants that are mature and alive
         elif ant.is_alive_and_mature():
@@ -321,14 +359,13 @@ def update_state():
 
     # keep track of all the variables at that point in time
     anthill.num_active_ants.append(count_num_active_ants)
-    anthill.num_immature_ants.append(count_num_immature_ants)
+    anthill.num_ant_eggs.append(count_num_ant_eggs)
+    anthill.num_ant_larvae.append(count_num_larvae)
+    anthill.num_ant_pupa.append(count_num_pupa)
     anthill.food_collected.append(anthill.food_count)
 
-    # stop the simulation if there are no more ants
-    if (count_num_active_ants == 0):# and (count_num_immature_ants == 0):
-        # plot summary statistics in a new figure
-        plot_simulation_summary_stats()
-
+    # stop the simulation if there are no more mature or baby ants
+    if (count_num_active_ants == 0) and (count_num_pupa == 0) and (count_num_larvae == 0):
         # raise an exception to stop the simulation
         print("All ants have died")
         raise ant_classes.AllAntsDead("All ants have died")

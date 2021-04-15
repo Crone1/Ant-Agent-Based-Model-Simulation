@@ -55,7 +55,9 @@ class AntHill:
 
         # track the state of the simulation at any given time
         self.num_active_ants = []
-        self.num_immature_ants = []
+        self.num_ant_eggs = []
+        self.num_ant_larvae = []
+        self.num_ant_pupa = []
         self.food_collected = []
 
     def __contains__(self, ant):

@@ -16,14 +16,17 @@ follow_prob: 1
 # set the initial strength of a food trail
 trail_depreciation_time: 20
 
-# set the depreciation rates of the ants
-max_lifespan: 13000
-max_without_food: 300
-
 # set how long an ant will go till he is hungry
 time_till_hungry: 72
 
 # set how many ants the queen lays per day
 num_ants_laid_daily: 1
-time_till_maturity: 1700 #2000
 
+# the time in each stage of the ants development
+time_till_egg_hatch: 168                 # 168 (one week) to 336 (two weeks)
+time_till_larvae_become_pupa: 720        # 720 (one month)
+time_till_pupa_become_mature_ants: 1000  # 1000 (6 weeks) to 1700 (10 weeks)
+
+# set the depreciation rates of the ants
+max_lifespan: 13000
+max_without_food: 300

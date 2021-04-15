@@ -30,8 +30,8 @@ class Gui:
         self.controller_title = 'Ant Simulation Controller'
         self.x_dim = 320
         self.y_dim = 250
-        self.figXDim = 6.85
-        self.figYDim = 6.15
+        self.figXDim = 10
+        self.figYDim = 4
 
         self.timeInterval = 0
         self.stepSize = 1
