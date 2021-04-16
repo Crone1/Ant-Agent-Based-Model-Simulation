@@ -19,7 +19,18 @@ These are:
 
 4.	*'gui_class.py'*
     * This file contains the class needed to run the interactive GUI in this simulation.
-    * This code was adapted using the code contained [here](https://github.com/hsayama/PyCX/blob/master/pycxsimulator.py) and was updated and built on for the purpose of this assignment.
+    * This code was adapted from the code contained [here](https://github.com/hsayama/PyCX/blob/master/pycxsimulator.py). The version in my code has been reformatted, updated and expanded for the purpose of this assignment.
 
 # Running the simulation
 
+### Running the simulation
+The file to run when running this simulation is *'ant_simulation.py'*.
+This the file containing the functionality of my model and calls from all of the other files in this repository.
+This file can be run easily in your chosen IDE or can be run in your terminal/anaconda prompt using the command:
+    
+    Python ant_simulation.py
+
+### Changing the parameters
+The parameters used in this simulation can be changed in *'ant_simulation_config.yaml'*.
+This file details what each of the parameters means and the meaning of any parameters or any restrictions on the values.
+Once this file is updated and SAVED, the above command can again be used to simulate the ant behavior using these new parameters.
