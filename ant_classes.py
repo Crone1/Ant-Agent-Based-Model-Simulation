@@ -119,6 +119,7 @@ class Ant:
 
         # define whether the ant is carrying food or not
         self.carrying_status = 0
+        self.num_food_carrying = 0
 
         # define whether the ant is following a trail or searching
         self.following_status = 0

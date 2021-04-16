@@ -1,5 +1,4 @@
 
-
 # ===================
 # | IMPORT PACKAGES |
 # ===================
@@ -17,6 +16,7 @@ from matplotlib.patches import Patch
 # packages for incrementing the ants
 from random import random, randint
 
+
 # ===================
 # | IMPORT CLASSES  |
 # ===================
@@ -25,6 +25,7 @@ import pycxsimulator
 
 # class for the ants
 import ant_classes
+
 
 # ===================================
 # | READ CONFIG VARIABLES FROM YAML |
@@ -37,9 +38,9 @@ with open("ant_simulation_config.yaml", "r") as config:
 env_width = config_variables["environment_width"]
 env_height = config_variables["environment_height"]
 starting_population_size = config_variables["starting_population_size"]
-num_starting_trees = config_variables["num_starting_trees"]
+environment_starting_tree_percent = config_variables["environment_starting_tree_percent"]
 tree_spawn_prob = config_variables["tree_spawn_prob"]
-max_food_on_tree = config_variables["max_food_on_tree"]
+max_food_per_location = config_variables["max_food_per_location"]
 follow_prob = config_variables["follow_prob"]
 trail_depreciation_time = config_variables["trail_depreciation_time"]
 max_lifespan = config_variables["max_lifespan"]
@@ -49,6 +50,7 @@ num_ants_laid_daily = config_variables["num_ants_laid_daily"]
 time_till_egg_hatch = config_variables["time_till_egg_hatch"]
 time_till_larvae_become_pupa = config_variables["time_till_larvae_become_pupa"]
 time_till_pupa_become_mature_ants = config_variables["time_till_pupa_become_mature_ants"]
+num_food_brought_back_to_nest = config_variables["num_food_brought_back_to_nest"]
 
 
 # ===================================
@@ -74,15 +76,13 @@ def initialise_environment():
     envir = np.zeros([env_height, env_width])
 
     # plant trees in specific locations
-    i = 0
-    while i < num_starting_trees:
-        tree_x_loc = randint(0, env_width-1)
-        tree_y_loc = randint(0, env_height-1)
-        if tree_x_loc == anthill.x_loc and tree_y_loc == anthill.y_loc:
-            continue
-        else:
-            envir[tree_y_loc, tree_x_loc] = randint(1, max_food_on_tree)
-            i += 1
+    for w in range(env_width):
+        for h in range(env_height):
+            # ensure we don't spawn food in the anthill
+            if w != anthill.x_loc and h != anthill.y_loc:
+                if random() < environment_starting_tree_percent:
+                    # spawn new tree to the map in this location
+                    envir[h, w] = randint(1, max_food_per_location)
 
 
 def turn_hours_to_more_appealing_output(hours):
@@ -106,7 +106,8 @@ def plot_simulation_summary_stats(mature_pop_axis, immature_pop_axis, food_axis)
         mature_pop_axis.set_ylim((-0.2*max_mpop_y_val, 1.2*max_mpop_y_val))
         mpop_label_pad = 25 + max((5, 5*len(str(max_mpop_y_val))))
     else:
-        mpop_label_pad = 20
+        mpop_label_pad = 30
+        mature_pop_axis.set_yticks([])
     mature_pop_axis.plot(list(range(len(anthill.num_active_ants))), anthill.num_active_ants)
     mature_pop_axis.set_ylabel("Mature\nPopulation", size=10, rotation='horizontal', labelpad=mpop_label_pad)
     mature_pop_axis.set_xticks([])
@@ -120,9 +121,12 @@ def plot_simulation_summary_stats(mature_pop_axis, immature_pop_axis, food_axis)
                 max_impop_y_val = i_val
         if max_impop_y_val != 0:
             immature_pop_axis.set_ylim((-0.2*max_impop_y_val, 1.2*max_impop_y_val))
+        else:
+            immature_pop_axis.axhline(y=0)
         impop_label_pad = 25 + max((5, 5*len(str(max_impop_y_val))))
     else:
-        impop_label_pad = 20
+        impop_label_pad = 30
+        immature_pop_axis.set_yticks([])
     immature_pop_axis.stackplot(list(range(len(anthill.num_ant_eggs))), anthill.num_ant_eggs, anthill.num_ant_larvae, anthill.num_ant_pupa, labels=["Ant Eggs", "Ant Larvea", "Ant Pupa"])
     immature_pop_axis.set_ylabel("Immature\nPopulation", size=10, rotation='horizontal', labelpad=impop_label_pad)
     immature_pop_axis.set_xticks([])
@@ -134,7 +138,8 @@ def plot_simulation_summary_stats(mature_pop_axis, immature_pop_axis, food_axis)
             food_axis.set_ylim((-0.2*max_food_y_val, 1.2*max_food_y_val))
         food_label_pad = 15 + max((5, 5*len(str(int(max_food_y_val)))))
     else:
-        food_label_pad = 20
+        food_label_pad = 30
+        food_axis.set_yticks([])
     food_axis.plot(list(range(len(anthill.food_collected))), anthill.food_collected)
     food_axis.set_ylabel("Food\nSupply", size=10, rotation='horizontal', labelpad=food_label_pad)
     food_axis.set_xlabel("Time (hrs)", size=10)
@@ -143,7 +148,7 @@ def plot_simulation_summary_stats(mature_pop_axis, immature_pop_axis, food_axis)
 def plot_environment_state(env_axis):
 
     # plot the environments state
-    env_axis.imshow(envir, cmap=cm.YlOrRd, vmin=0, vmax=max_food_on_tree)
+    env_axis.imshow(envir, cmap=cm.YlOrRd, vmin=0, vmax=max_food_per_location)
     env_axis.axis('off')
     # plot the anthills location
     env_axis.scatter(anthill.x_loc, anthill.y_loc, c="black")
@@ -178,8 +183,12 @@ def plot_current_state():
     # re-locate the graph labels
     handles, labels = immature_pop_axis.get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right', fontsize="small")
+    '''
+    # make the figure become full screen
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
+    '''
+    # plot the figure
     plt.show()
 
 
@@ -235,7 +244,7 @@ def update_state():
         tree_y_loc = randint(0, env_height-1)
         if (tree_x_loc != anthill.x_loc) or (tree_y_loc != anthill.y_loc):
             # add tree in this location
-            envir[tree_y_loc, tree_x_loc] = randint(1, max_food_on_tree)
+            envir[tree_y_loc, tree_x_loc] = randint(1, max_food_per_location)
 
     # add new ants to the colony
     if anthill.time_since_last_new_ant > (24/num_ants_laid_daily):
@@ -252,6 +261,10 @@ def update_state():
 
         # check if the ant is now dead from starvation
         if ant.time_since_eaten > max_without_food:
+            ant.maturity_status = "dead"
+
+        # check if the ant is dead from old age
+        if ant.time_since_born > max_lifespan:
             ant.maturity_status = "dead"
 
         # update the immature ants
@@ -318,7 +331,9 @@ def update_state():
                         eat_if_hungry(ant, time_till_hungry, envir=envir)
                         # if there is still food left, pick it up and bring it home
                         if envir[ant.y_loc, ant.x_loc] > 0:
-                            envir[ant.y_loc, ant.x_loc] -= 1
+                            food_to_pick_up = min(envir[ant.y_loc, ant.x_loc], num_food_brought_back_to_nest)
+                            envir[ant.y_loc, ant.x_loc] -= food_to_pick_up
+                            ant.num_food_carrying = food_to_pick_up
                             ant.carrying_status = 1
                             # check if this is the food the follower was supposed to have picked up
                             if ant.is_follower() and (ant.count_steps_out != len(ant.food_scent_trail)):
@@ -334,7 +349,8 @@ def update_state():
             elif ant.is_carrying_food():
                 # if at the anthill - unload the food
                 if ant in anthill:
-                    anthill.food_count += 1
+                    anthill.food_count += ant.num_food_carrying
+                    ant.num_food_carrying = 0
                     ant.carrying_status = 0
                     ant.count_steps_back = 0
                     eat_if_hungry(ant, time_till_hungry, anthill, None)
@@ -365,7 +381,7 @@ def update_state():
     anthill.food_collected.append(anthill.food_count)
 
     # stop the simulation if there are no more mature or baby ants
-    if (count_num_active_ants == 0) and (count_num_pupa == 0) and (count_num_larvae == 0):
+    if (count_num_active_ants == 0) and (anthill.food_count == 0):
         # raise an exception to stop the simulation
         print("All ants have died")
         raise ant_classes.AllAntsDead("All ants have died")
@@ -393,7 +409,7 @@ def main():
 
     # old simulation
     gui = pycxsimulator.Gui()
-    gui.start(func=[initialise_environment, plot_current_state, update_state])
+    gui.start_simulation(func=[initialise_environment, plot_current_state, update_state])
 
 
 if __name__ == "__main__":

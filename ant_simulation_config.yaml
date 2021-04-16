@@ -3,30 +3,31 @@
 # define the initial environment conditions
 environment_width: 50
 environment_height: 50
-num_starting_trees: 100
-max_food_on_tree: 100
+environment_starting_tree_percent: 0.04
+max_food_per_location: 500
 starting_population_size: 50
 
 # set probability of new trees spawning
-tree_spawn_prob: 0.01
+tree_spawn_prob: 0.05
 
 # set probability of ant following a trail vs searching for new food sources
-follow_prob: 1
+follow_prob: 0.9
 
 # set the initial strength of a food trail
-trail_depreciation_time: 20
+trail_depreciation_time: 24
+
+# set the number of food pieces that an ant can bring home
+num_food_brought_back_to_nest: 4
 
 # set how long an ant will go till he is hungry
-time_till_hungry: 72
+time_till_hungry: 72                     # 72 (three days)
 
-# set how many ants the queen lays per day
+# the parameters governing the immature ants development
 num_ants_laid_daily: 1
-
-# the time in each stage of the ants development
 time_till_egg_hatch: 168                 # 168 (one week) to 336 (two weeks)
 time_till_larvae_become_pupa: 720        # 720 (one month)
 time_till_pupa_become_mature_ants: 1000  # 1000 (6 weeks) to 1700 (10 weeks)
 
 # set the depreciation rates of the ants
-max_lifespan: 13000
-max_without_food: 300
+max_lifespan: 13140                      # 8760 (one year) or 13140 (a years and a half)
+max_without_food: 336                    # 336 (two weeks)
