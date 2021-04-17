@@ -409,7 +409,7 @@ def main():
 
     # old simulation
     gui = pycxsimulator.Gui()
-    gui.start_simulation(func=[initialise_environment, plot_current_state, update_state])
+    gui.start_simulation(initialise_environment, plot_current_state, update_state)
 
 
 if __name__ == "__main__":
