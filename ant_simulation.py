@@ -21,7 +21,7 @@ from random import random, randint
 # | IMPORT CLASSES  |
 # ===================
 # class for the GUI
-import pycxsimulator
+import gui_class
 
 # class for the ants
 import ant_classes
@@ -34,7 +34,7 @@ import ant_classes
 with open("ant_simulation_config.yaml", "r") as config:
     config_variables = yaml.load(config, Loader=yaml.FullLoader)
 
-# extract the variables from the file
+# extract the variables from the config file
 env_width = config_variables["environment_width"]
 env_height = config_variables["environment_height"]
 starting_population_size = config_variables["starting_population_size"]
@@ -389,26 +389,8 @@ def update_state():
 
 def main():
 
-    '''
-    # initialise the environment
-    time, anthill, ants_list, envir = initialise_environment()
-    fig = plt.figure()
-
-    # Create the GUI
-    create_simulation_controller(300, 200)
-
-    # plot the evironment state
-    plot_current_state(time, anthill, ants_list, envir)
-    fig.canvas.manager.window.update()
-    plt.show()
-
-    # iteratively update the plot
-
-    #root_window.mainloop()
-    '''
-
-    # old simulation
-    gui = pycxsimulator.Gui()
+    # run the simulation - open the control panel & plot the figure
+    gui = gui_class.Gui()
     gui.start_simulation(initialise_environment, plot_current_state, update_state)
 
 

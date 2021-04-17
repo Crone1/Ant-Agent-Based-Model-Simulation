@@ -3,18 +3,18 @@
 # define the initial environment conditions
 environment_width: 50
 environment_height: 50
-environment_starting_tree_percent: 0.04
+environment_starting_tree_percent: 0.05  # should be between 0 and 1
 max_food_per_location: 500
 starting_population_size: 50
 
 # set probability of new trees spawning
-tree_spawn_prob: 0.05
+tree_spawn_prob: 0.01                    # should be between 0 and 1
 
 # set probability of ant following a trail vs searching for new food sources
-follow_prob: 0.9
+follow_prob: 0.9                         # should be between 0 and 1
 
 # set the initial strength of a food trail
-trail_depreciation_time: 24
+trail_depreciation_time: 20
 
 # set the number of food pieces that an ant can bring home
 num_food_brought_back_to_nest: 4
