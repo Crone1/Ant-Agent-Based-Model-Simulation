@@ -74,10 +74,12 @@ class AntHill:
     def get_trail(self):
         strength_list = []
         id_and_path_list = []
+        # iterate through the trails and get a list of the active trails & their pheromone strengths
         for trail in self.trails:
             if trail.is_active():
                 id_and_path_list.append((trail.id, trail.path))
                 strength_list.append(trail.strength)
+        # return one trail based on the pheromone strength of that trail
         return choices(population=id_and_path_list, weights=strength_list, k=1)[0]
 
     def add_trail(self, trail_path):
